@@ -1,0 +1,6 @@
+@Qwen.MCP.Server_HostAddress = http://localhost:5161
+
+GET {{Qwen.MCP.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
