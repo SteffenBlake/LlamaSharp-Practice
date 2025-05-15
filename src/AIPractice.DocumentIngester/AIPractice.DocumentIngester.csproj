@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-AIPractice.DocumentIngester-9e1ab19a-89b1-479b-bb77-59a02ed84092</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Aspire.Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.2.1" />
+    <PackageReference Include="Aspire.Qdrant.Client" Version="9.2.1" />
+    <PackageReference Include="Aspire.RabbitMQ.Client.v7" Version="9.2.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AIPractice.ServiceDefaults\AIPractice.ServiceDefaults.csproj" />
+    <ProjectReference Include="..\AIPractice.Domain\AIPractice.Domain.csproj" />
+  </ItemGroup>
+</Project>
