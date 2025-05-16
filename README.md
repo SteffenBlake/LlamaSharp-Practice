@@ -20,26 +20,29 @@ This is a .NET Aspire practice stack, meant to simulate several core principles:
 
 8. Postgres + EF Core database with a backing singleton one-shot automatic migration (plus potential seed data if needed) service
 
-9. Every individual piece designed to be individually scaleable on its own, if needed. Multiple instances of the LLM can be deployed and parallelized, to enable supporting multiple client connections, or parallelizing work processing documents for RAG'ing
+9. Azure Blob Storage integration for cloud hosted LLM storage
 
-10. Automatic service ordering, each individual service has its order of operation defined such that if service A depends on service B, it wont start up until A is healthy (this is a built in feature of Aspire)
+10. Every individual piece designed to be individually scaleable on its own, if needed. Multiple instances of the LLM can be deployed and parallelized, to enable supporting multiple client connections, or parallelizing work processing documents for RAG'ing
 
-11. **True** integration testing, Aspire lets us stand up the *entire* stack for integration testing against, top to bottom!
+11. Automatic service ordering, each individual service has its order of operation defined such that if service A depends on service B, it wont start up until A is healthy (this is a built in feature of Aspire)
+
+12. **True** integration testing, Aspire lets us stand up the *entire* stack for integration testing against, top to bottom!
 
 ## Requirements to run
 1. Dotnet SDK 8 or later installed
 2. `docker` installed
-3. A LLamasharp compatible LLM .gguf file downloaded (that your GPU can run!)
-4. Configure `Model:Path` value in the `AIPractice.ModelWorker/appsettings.Development.json` file
+3. A LLamasharp compatible LLM .gguf file downloaded (that your GPU can run!), with sufficient read/write permissions for your user.
+4. Created directory for Azure Storage Emulator to store cached copies of models in with sufficient read/write permissions (`/var/opt/ModelWork` by default)
+4. Configure `ModelPath` value in the `AIPractice.AppHost/appsettings.Development.json` to point to the file from step 3 
+5. Configure `Model:CacheDir` in `AIPractice.ModelWorker/appsettings.Development.json` to point to the directory you made in step 4
+6. Ensure the directory from step 5 exists and has sufficient Read/Write permissions for your user to access
 
 ## Running the application
 
-Step 1: `cd` into the AIPractice.AppHost project
-Step 2: `dotnet run`
-Step 3: console will give you the port the dashboard is running on, open this up to get info on every running microservice
-Step 4: You likely will want to open up the Svelte chat client's port, in order to start interacting with the frontend
-
-Thats all that is needed!
+1. `cd` into the AIPractice.AppHost project
+2. `dotnet run`
+3. console will give you the port the dashboard is running on, open this up to get info on every running microservice
+4. You likely will want to open up the Svelte chat client's port, in order to start interacting with the frontend
 
 ## Architecture
 

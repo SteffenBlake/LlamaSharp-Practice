@@ -6,15 +6,11 @@ using AIPractice.Domain;
 var builder = Host.CreateApplicationBuilder(args);
 builder.AddServiceDefaults();
 
-var config = builder.Configuration.Get<DocumentIngesterConfig>() ?? 
+var config = builder.Configuration.Get<DocumentIngesterConfig>() ??
     throw new InvalidOperationException(
         "Invalid configuration schema"
     );
 builder.Services.AddSingleton(config);
-
-builder.Services.AddOpenTelemetry().WithTracing(tracing => 
-    tracing.AddSource(DocumentIngesterBackgroundService.ActivitySource.Name)
-);
 
 builder.Services.AddDbContext<AppDbContext>(options =>
 {

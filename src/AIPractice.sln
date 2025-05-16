@@ -5,7 +5,7 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIPractice.AppHost", "AIPractice.AppHost\AIPractice.AppHost.csproj", "{CA8AFD0C-471A-466A-866A-CC97E10C4FF9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIPractice.DataWorker", "AIPractice.DataWorker\AIPractice.DataWorker.csproj", "{F6AE2A71-359A-4BE8-8266-99DDA8F69238}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIPractice.Bootstrapper", "AIPractice.Bootstrapper\AIPractice.Bootstrapper.csproj", "{F6AE2A71-359A-4BE8-8266-99DDA8F69238}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AIPractice.Domain", "AIPractice.Domain\AIPractice.Domain.csproj", "{0D6E12F0-EB39-4F3D-A815-574C946466A4}"
 EndProject

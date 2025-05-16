@@ -4,7 +4,7 @@ using RabbitMQ.Client;
 
 namespace AIPractice.Domain.Extensions;
 
-public static class RabbitMQ
+public static class RabbitMQExtensions
 {
     public static Task<QueueDeclareOk> QueueDeclareAsync<T>(
         this IChannel channel,
@@ -15,6 +15,7 @@ public static class RabbitMQ
         bool noWait = false,
         CancellationToken cancellationToken = default
     )
+        where T: class
     {
         return channel.QueueDeclareAsync(
             typeof(T).Name, durable, exclusive, autoDelete, arguments, noWait, cancellationToken
@@ -27,6 +28,7 @@ public static class RabbitMQ
         string exchange = "",
         CancellationToken cancellationToken = default
     )
+        where T: class
     {
         var body = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(data));
         return channel.BasicPublishAsync(
@@ -41,7 +43,7 @@ public static class RabbitMQ
         this IChannel channel,
         CancellationToken cancellationToken = default
     )
-        where T : struct
+        where T : class 
     {
         T? result;
         do
@@ -50,9 +52,9 @@ public static class RabbitMQ
                 autoAck: true, cancellationToken
             );
 
-            if (result.HasValue)
+            if (result != null)
             {
-                return result.Value;
+                return result;
             }
 
             await Task.Delay(1000, cancellationToken);
@@ -66,7 +68,7 @@ public static class RabbitMQ
         bool autoAck,
         CancellationToken cancellationToken = default
     )
-        where T : struct
+        where T : class 
     {
         var result = await channel.BasicGetAsync(
             typeof(T).Name, autoAck, cancellationToken

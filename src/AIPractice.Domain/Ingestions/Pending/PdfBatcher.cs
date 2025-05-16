@@ -1,63 +1,45 @@
-#pragma warning disable SKEXP0001
-
 using System.Text;
-using AIPractice.ServiceDefaults;
-using Microsoft.CodeAnalysis;
-using Microsoft.SemanticKernel.Memory;
 using UglyToad.PdfPig;
 
-namespace AIPractice.Domain.Ingestions;
+namespace AIPractice.Domain.Ingestions.Pending;
 
-public static class IngestionEmbeddingCmdHandler
+public static class PdfBatcher
 {
-    public static async Task HandleAsync(
-        HttpClient httpClient,
-        ISemanticTextMemory memory,
-        IngestionEmbeddingCmd cmd,
-        CancellationToken cancellationToken
-    )
-    {
-        var builder = new StringBuilder();
-        var downloadResult = await httpClient.GetAsync(cmd.Url, cancellationToken);
-        downloadResult.EnsureSuccessStatusCode();
-        var data = await downloadResult.Content.ReadAsStreamAsync(cancellationToken);
-
-        foreach (var batch in BatchPdf(builder, data, cmd))
-        {
-            var id = Guid.NewGuid().ToString();
-            await memory.SaveReferenceAsync(
-                ServiceConstants.QDRANT, batch, id, id, cancellationToken: cancellationToken
-            );
-        }
-    }
-
     private static readonly ParsingOptions _parsingOptions = new ()
     {
         UseLenientParsing = true
     };
-    private static IEnumerable<string> BatchPdf(
-        StringBuilder builder, Stream data, IngestionEmbeddingCmd cmd
+    public static IEnumerable<(string Signature, string Text)> BatchPdf(
+        Stream data,
+        int batchSize,
+        int batchOverlap,
+        List<EmbeddingSection> sections, 
+        StringBuilder builder
     )
     {
         using var document = PdfDocument.Open(data, _parsingOptions);
-        foreach (var section in cmd.Sections)
+        foreach (var section in sections)
         {
             var batches = BatchSection(
-                builder, cmd.BatchSize, cmd.BatchOverlap, document, section
+                batchSize,
+                batchOverlap,
+                document,
+                section,
+                builder
             );
             foreach (var batch in batches)
             {
-                yield return batch;
+                yield return (section.Signature, batch);
             }
         }
     }
 
     private static IEnumerable<string> BatchSection(
-        StringBuilder builder,
         int batchSize,
         int batchOverlap,
         PdfDocument document,
-        EmbeddingSection section
+        EmbeddingSection section,
+        StringBuilder builder
     )
     {
         builder.Clear();
@@ -105,5 +87,4 @@ public static class IngestionEmbeddingCmdHandler
         }
         return builder.ToString();
     }
-
 }

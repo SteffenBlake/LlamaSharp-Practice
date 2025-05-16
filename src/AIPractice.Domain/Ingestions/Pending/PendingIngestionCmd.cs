@@ -1,4 +1,4 @@
-namespace AIPractice.Domain.Ingestions;
+namespace AIPractice.Domain.Ingestions.Pending;
 
 public record PendingIngestionCmd(
     PendingDocument[] Documents

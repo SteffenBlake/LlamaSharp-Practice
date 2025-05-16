@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Aspire.Azure.Storage.Blobs" Version="9.2.1" />
     <PackageReference Include="Aspire.Confluent.Kafka" Version="9.2.1" />
     <PackageReference Include="Aspire.Qdrant.Client" Version="9.2.1" />
     <PackageReference Include="Aspire.RabbitMQ.Client.v7" Version="9.2.1" />

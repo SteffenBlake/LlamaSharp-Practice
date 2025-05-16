@@ -1,21 +1,18 @@
-using System.Diagnostics;
 using AIPractice.Domain;
-using AIPractice.Domain.Ingestions;
+using AIPractice.Domain.Ingestions.Pending;
 using Microsoft.EntityFrameworkCore;
 using RabbitMQ.Client;
 
 namespace AIPractice.DocumentIngester;
 
 public class DocumentIngesterBackgroundService(
+    ILoggerFactory loggerFactory,
     DocumentIngesterConfig config,
     IServiceProvider serviceProvider,
     IHostApplicationLifetime hostApplicationLifetime,
     IConnection connection
 ) : BackgroundService
 {
-    public static readonly ActivitySource ActivitySource 
-        = new(nameof(DocumentIngesterBackgroundService));
-
     protected override async Task ExecuteAsync(CancellationToken cancellationToken)
     {
         using var scope = serviceProvider.CreateScope();
@@ -30,27 +27,12 @@ public class DocumentIngesterBackgroundService(
         AppDbContext db, CancellationToken cancellationToken
     )
     {
-        using var activity = ActivitySource.StartActivity(
-            "Data Ingestion", ActivityKind.Client
-        );
-
-        try
-        {
-            var strategy = db.Database.CreateExecutionStrategy();
-            await strategy.ExecuteAsync(async () =>
-            {
-                await ExecuteIngestionsAsync(db, cancellationToken);
-            });
-        }
-        catch (Exception ex)
-        {
-            activity?.AddException(ex);
-            throw;
-        }
+        await ExecuteIngestionsAsync(db, cancellationToken);
     }
 
     private async Task ExecuteIngestionsAsync(
-        AppDbContext db, CancellationToken cancellationToken
+        AppDbContext db,
+        CancellationToken cancellationToken
     )
     {
         using var channel = await connection.CreateChannelAsync(
@@ -58,14 +40,8 @@ public class DocumentIngesterBackgroundService(
             cancellationToken
         );
 
-        var watchlist = await PendingIngestionCmdHandler.RunAsync(
-            db, config.Ingestion, channel, config.Data, cancellationToken
-        );
-
-        var completionCommand = new IngestionCompleteCmd(watchlist);
-
-        await IngestionCompleteCmdHandler.RunAsync(
-            db, channel, completionCommand, cancellationToken
+        await PendingIngestionCmdHandler.HandleAsync(
+            loggerFactory, db, config.Ingestion, channel, config.Data, cancellationToken
         );
     }
 }

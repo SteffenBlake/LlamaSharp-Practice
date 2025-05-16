@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" Version="9.2.1" />
+    <PackageReference Include="Aspire.Hosting.Azure.Storage" Version="9.2.1" />
     <PackageReference Include="Aspire.Hosting.Kafka" Version="9.2.1" />
     <PackageReference Include="Aspire.Hosting.NodeJs" Version="9.2.1" />
     <PackageReference Include="Aspire.Hosting.PostgreSQL" Version="9.2.1" />
@@ -20,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AIPractice.DataWorker\AIPractice.DataWorker.csproj" />
+    <ProjectReference Include="..\AIPractice.Bootstrapper\AIPractice.Bootstrapper.csproj" />
     <ProjectReference Include="..\AIPractice.ModelWorker\AIPractice.ModelWorker.csproj" />
     <ProjectReference Include="..\AIPractice.ServiceDefaults\AIPractice.ServiceDefaults.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\AIPractice.WebApi\AIPractice.WebApi.csproj" />
