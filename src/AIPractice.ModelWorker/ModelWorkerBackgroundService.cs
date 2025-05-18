@@ -135,12 +135,12 @@ public class ModelWorkerBackgroundService(
             return;
         }
 
-        var promptCmd = await channel.GetAsync<ChatPromptCmd>(
+        var promptCmd = await channel.GetAsync<ChatPromptMsg>(
             autoAck:true, cancellationToken
         );
         if (promptCmd != null)
         {
-            await ChatPromptCmdHandler.HandleAsync(
+            await ChatPromptMsdHandler.HandleAsync(
                 loggerFactory, memory, context, kafka, promptCmd, cancellationToken
             );
             return;

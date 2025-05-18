@@ -69,8 +69,8 @@ public class BootstrapperBackgroundService(
             autoDelete: false,
             cancellationToken: cancellationToken
         );
-        logger.LogInformation($"Ensuring {nameof(ChatPromptCmd)} Queue.");
-        _ = await channel.QueueDeclareAsync<ChatPromptCmd>(
+        logger.LogInformation($"Ensuring {nameof(ChatPromptMsg)} Queue.");
+        _ = await channel.QueueDeclareAsync<ChatPromptMsg>(
             durable: true,
             exclusive: false,
             autoDelete: false,

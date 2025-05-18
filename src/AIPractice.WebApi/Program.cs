@@ -27,14 +27,12 @@ builder.Services.AddHostedService<ChatHubBridge>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.AddRoutes();
+app.MapHub<ChatHub>("/api/hubs/chat");
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
-app.UseHttpsRedirection();
-
-app.MapHub<ChatHub>("/chat");
 
 app.Run();

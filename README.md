@@ -28,6 +28,8 @@ This is a .NET Aspire practice stack, meant to simulate several core principles:
 
 12. **True** integration testing, Aspire lets us stand up the *entire* stack for integration testing against, top to bottom!
 
+13. Reverse proxy support for custom hostname in 1 click, for when you are running your box on a host other than localhost and need to connect to any of the services from a separate machine (classic example being testing a web app or mobile app out on mobile phones, or if you are SSHing into your dev machine)
+
 ## Requirements to run
 1. Dotnet SDK 8 or later installed
 2. `docker` installed
@@ -44,6 +46,15 @@ This is a .NET Aspire practice stack, meant to simulate several core principles:
 3. console will give you the port the dashboard is running on, open this up to get info on every running microservice
 4. You likely will want to open up the Svelte chat client's port, in order to start interacting with the frontend
 
+Note: If you are connecting from a different machine and thus using a host other than localhost, you'll need to follow the steps below. Aspire doesn't support this behavior out of the box, and thus 1 extra step has to be done to enable the YARP dev proxy service ("DevProxy")
+
+## Enabling proxying to machine's host (IE for connecting to Aspire apps from a secondary machine/mobile phone/etc)
+1. `cd` into the Apphost project
+2. Execute `dotnet user-secrets set "YARP:Host" "$(hostname)"` (works in bash and powershell!)
+3. Instead of using the various URLs you see on the microservices on the dashboard, scroll down to the now added "DEVPROXY" service, and expand it's URLs section. Use these URLs instead to connect to the various services, as they have been proxied via a minimalist YARP project.
+
+Note you can also substitute `$(hostname)` with some other hostname as you like, IE if you have a custom DNS or whatever setup in your network.
+
 ## Architecture
 
 ### AIPractice.AppHost
@@ -53,6 +64,10 @@ This is a .NET Aspire practice stack, meant to simulate several core principles:
 ### AIPractice.Chat (WIP)
 
 "Frontend" Svelte SPWA, chat client
+
+### AIPractice.DevProxy
+
+Special "Dev Only" service that spins up if you have the `YARP:Host` config set on the AppHost. This project utilizes [YARP](https://github.com/dotnet/yarp) to stand up a minimalist reverse proxy to support connecting to Aspire using a host other than localhost. By default, to discourage trying to deploy Aspire itself, using a host other than localhost doesn't work for Aspire, at least, not easily. This YARP project however demo's a very easy way to get this behavior working in a controlled way, for example if you need to connect to an Aspire service from a secondary machine, like perhaps a mobile phone for testing.
 
 ### AIPractice.DataWorker
 

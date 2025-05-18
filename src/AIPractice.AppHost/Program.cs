@@ -1,44 +1,31 @@
 using Microsoft.Extensions.Configuration;
 using AIPractice.ServiceDefaults;
 using Microsoft.Extensions.Hosting;
+using AIPractice.AppHost.Extensions;
 
 var builder = DistributedApplication.CreateBuilder(args);
 
 var useVolumes = builder.Configuration.GetValue<bool>("UseVolumes");
 var vectorSize = builder.Configuration.GetValue<int>("VectorSize");
 
-var postgres = builder.AddPostgres(ServiceConstants.POSTGRES);
-if (useVolumes)
-{
-    _ = postgres.WithDataVolume(ServiceConstants.POSTGRES, isReadOnly: false)
-        .WithLifetime(ContainerLifetime.Persistent);
-}
+var postgres = builder.AddPostgres(ServiceConstants.POSTGRES).WithPgAdmin();
 
 var postgresDb = postgres.AddDatabase(ServiceConstants.POSTGRESDB);
 
-var qdrant = builder.AddQdrant(ServiceConstants.QDRANT);
-if (useVolumes)
-{
-    _ = qdrant
-        .WithDataVolume(ServiceConstants.QDRANT, isReadOnly: false)
-        .WithLifetime(ContainerLifetime.Persistent);
-}
+var qdrant = builder.AddQdrant(ServiceConstants.QDRANT)
+    .WithEnvironment("__VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS", "true")
+    // Auto append the /dashboard path to the qdrant urls
+    .WithUrls(ctx => {
+        foreach(var annotation in ctx.Urls)
+        {
+            annotation.Url += "dashboard";
+        }
+    });
 
-var rabbitMQ = builder.AddRabbitMQ(ServiceConstants.RABBITMQ);
-if (useVolumes)
-{
-    _ = rabbitMQ
-        .WithDataVolume(ServiceConstants.RABBITMQ, isReadOnly: false)
-        .WithLifetime(ContainerLifetime.Persistent);
-}
+var rabbitMQ = builder.AddRabbitMQ(ServiceConstants.RABBITMQ)
+    .WithManagementPlugin();
 
-var kafka = builder.AddKafka(ServiceConstants.KAFKA);
-if (useVolumes)
-{
-    _ = kafka
-        .WithDataVolume(ServiceConstants.KAFKA, isReadOnly: false)
-        .WithLifetime(ContainerLifetime.Persistent);
-}
+var kafka = builder.AddKafka(ServiceConstants.KAFKA).WithKafkaUI();
 
 var azureStorage = builder.AddAzureStorage(ServiceConstants.AZURESTORAGE);
 if (builder.Environment.IsDevelopment())
@@ -67,6 +54,14 @@ var bootstrapper = builder.AddProject<Projects.AIPractice_Bootstrapper>(
     .WaitFor(kafka)
     .WithReference(blobStorage)
     .WaitFor(blobStorage);
+
+if (useVolumes)
+{
+    _ = rabbitMQ.WithDataVolume(ServiceConstants.RABBITMQ, isReadOnly: false);
+    _ = postgres.WithDataVolume(ServiceConstants.POSTGRES, isReadOnly: false);
+    _ = qdrant.WithDataVolume(ServiceConstants.QDRANT, isReadOnly: false);
+    _ = kafka.WithDataVolume(ServiceConstants.KAFKA, isReadOnly: false);
+}
 
 if (builder.Environment.IsDevelopment())
 {
@@ -126,7 +121,29 @@ var svelteChat = builder.AddNpmApp(ServiceConstants.SVELTECHAT, "../AIPractice.C
     .WithReference(webApi)
     .WaitFor(webApi)
     .WithHttpEndpoint(env: "PORT")
-    .WithExternalHttpEndpoints()
     .PublishAsDockerFile();
+
+var hostOverride = builder.Configuration["YARP:Host"]?.Trim();
+if (!string.IsNullOrEmpty(hostOverride))
+{
+    Console.WriteLine("Dev Mode Host Override Mode Engaged, enabling DevProxy Service");
+    Console.WriteLine($"HostOverride: {hostOverride}");
+
+    var devProxy = builder.AddProject<Projects.AIPractice_DevProxy>(
+        ServiceConstants.DEVPROXY
+    )
+    .WithEnvironment("HostOverride", hostOverride)
+    .ProxyTo(svelteChat, hostOverride, out _)
+    .ProxyTo(webApi, hostOverride, out var webApiProxyUrl)
+    .ProxyTo(rabbitMQ, hostOverride, out _, targetEndpointName: "management")
+    .ProxyTo(qdrant, hostOverride, out _, $"/dashboard")
+    .WithUrlsHost(hostOverride)
+    .WithUrlForEndpoint("http", url => url.DisplayOrder = null);
+
+    postgres.WithPgAdmin(pgAdmin => devProxy.ProxyTo(pgAdmin, hostOverride, out _));
+    kafka.WithKafkaUI(kafkaUI => devProxy.ProxyTo(kafkaUI, hostOverride, out _));
+
+    svelteChat.WithEnvironment("ProxiedUrl", webApiProxyUrl);
+}
 
 builder.Build().Run();

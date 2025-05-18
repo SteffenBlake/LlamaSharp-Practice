@@ -26,6 +26,7 @@
     <ProjectReference Include="..\AIPractice.ServiceDefaults\AIPractice.ServiceDefaults.csproj" IsAspireProjectResource="false" />
     <ProjectReference Include="..\AIPractice.WebApi\AIPractice.WebApi.csproj" />
     <ProjectReference Include="..\AIPractice.DocumentIngester\AIPractice.DocumentIngester.csproj" />
+    <ProjectReference Include="..\AIPractice.DevProxy\AIPractice.DevProxy.csproj" />
   </ItemGroup>
     
   <Target Name="RestoreNpm" BeforeTargets="Build" Condition=" '$(DesignTimeBuild)' != 'true' ">
